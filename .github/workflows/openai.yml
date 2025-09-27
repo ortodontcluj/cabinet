@@ -1,0 +1,43 @@
+name: OpenAI GPT-5 Test
+
+on:
+  workflow_dispatch: # rulezi manual din tab-ul Actions
+
+jobs:
+  run-openai:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install openai
+
+      - name: Call OpenAI GPT-5 (no streaming)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # adaugă secretul în Settings → Secrets → Actions
+        run: |
+          python - <<'EOF'
+          import os
+          from openai import OpenAI
+
+          api_key = os.environ.get("OPENAI_API_KEY")
+          if not api_key:
+            raise SystemExit("Missing OPENAI_API_KEY. Add it as a repository secret.")
+
+          client = OpenAI(api_key=api_key)
+
+          resp = client.chat.completions.create(
+              model="gpt-5",
+              messages=[{"role": "user", "content": "Salut din GitHub Actions cu GPT-5!"}]
+          )
+          print(resp.choices[0].message.content)
+          EOF
